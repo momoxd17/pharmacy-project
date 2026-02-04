@@ -34,7 +34,7 @@ export default function Blog() {
           onClick={() => setActiveSection('')}
           className={`px-4 py-2 rounded-xl font-medium transition-colors ${
             !activeSection
-              ? 'bg-teal-600 text-white'
+              ? 'bg-[#1B98E0] text-white'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
@@ -46,7 +46,7 @@ export default function Blog() {
             onClick={() => setActiveSection(sec.slug)}
             className={`px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 ${
               activeSection === sec.slug
-                ? 'bg-teal-600 text-white'
+                ? 'bg-[#1B98E0] text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -75,17 +75,19 @@ export default function Blog() {
                   <img
                     src={post.image}
                     alt={title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <span className="absolute top-3 right-3 bg-teal-600/90 text-white text-xs px-2 py-1 rounded-lg">
+                  <span className="absolute top-3 right-3 bg-[#1B98E0]/90 text-white text-xs px-2 py-1 rounded-lg">
                     {locale === 'ar' ? section?.nameAr : section?.name}
                   </span>
                 </div>
                 <div className="p-4">
-                  <span className="text-xs text-teal-600 font-medium">
+                  <span className="text-xs text-[#004180] font-medium">
                     {locale === 'ar' ? section?.nameAr : section?.name}
                   </span>
-                  <h2 className="font-bold text-gray-800 mt-1 line-clamp-2 group-hover:text-teal-600 transition-colors">
+                  <h2 className="font-bold text-gray-800 mt-1 line-clamp-2 group-hover:text-[#1E9ED8] transition-colors">
                     {title}
                   </h2>
                   <p className="text-sm text-gray-500 mt-2 line-clamp-2">{excerpt}</p>

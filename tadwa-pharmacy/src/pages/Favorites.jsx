@@ -19,7 +19,7 @@ export default function Favorites() {
         <p className="text-gray-500 mb-6">{t('noFavoritesDesc')}</p>
         <Link
           to="/"
-          className="inline-block bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700"
+          className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
         >
           {t('browseProducts')}
         </Link>

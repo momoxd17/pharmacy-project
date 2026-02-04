@@ -1,10 +1,11 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { ShoppingCart, Heart } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useFavorites } from '../context/FavoritesContext'
 import { useLanguage } from '../context/LanguageContext'
 
-export default function ProductCard({ product }) {
+function ProductCard({ product }) {
   const { addToCart } = useCart()
   const { isFavorite, toggleFavorite } = useFavorites()
   const { t, locale } = useLanguage()
@@ -34,6 +35,8 @@ export default function ProductCard({ product }) {
         <img
           src={product.images?.[0] ?? product.image}
           alt={displayName}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover"
         />
         <button
@@ -56,7 +59,7 @@ export default function ProductCard({ product }) {
         )}
         <button
           onClick={handleAddToCart}
-          className="absolute bottom-2 left-2 right-2 bg-teal-600 text-white py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-sm"
+          className="absolute bottom-2 left-2 right-2 bg-black text-white py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-sm"
         >
           <ShoppingCart className="w-4 h-4" />
           {t('addToCart')}
@@ -65,7 +68,7 @@ export default function ProductCard({ product }) {
       <div className="p-4">
         <h3 className="font-medium text-gray-800 line-clamp-2 mb-1">{displayName}</h3>
         <div className="flex items-center gap-2">
-          <span className="text-teal-600 font-bold">{product.price} {t('sar')}</span>
+          <span className="text-[#004180] font-bold">{product.price} {t('sar')}</span>
           {product.originalPrice && (
             <span className="text-gray-400 text-sm line-through">{product.originalPrice} {t('sar')}</span>
           )}
@@ -74,3 +77,5 @@ export default function ProductCard({ product }) {
     </Link>
   )
 }
+
+export default memo(ProductCard)

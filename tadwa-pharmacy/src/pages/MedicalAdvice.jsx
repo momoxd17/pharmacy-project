@@ -20,15 +20,19 @@ export default function MedicalAdvice() {
   })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
     setLoading(true)
     try {
       await apiPost('/medical-advice', form)
       setSubmitted(true)
-    } catch {
-      setSubmitted(true)
+    } catch (err) {
+      setError(err.message === 'NETWORK_ERROR' || err.status >= 500
+        ? t('serverUnavailable') || 'الخادم غير متاح. حاول لاحقاً'
+        : err.message || 'فشل الإرسال')
     } finally {
       setLoading(false)
     }
@@ -44,7 +48,7 @@ export default function MedicalAdvice() {
         <p className="text-gray-600 mb-6">{t('adviceRequestDesc')}</p>
         <Link
           to="/"
-          className="inline-block bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700"
+          className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
         >
           {t('backToHome')}
         </Link>
@@ -56,8 +60,8 @@ export default function MedicalAdvice() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
-            <Stethoscope className="w-6 h-6 text-teal-600" />
+          <div className="w-12 h-12 rounded-full bg-[#DFF2F3] flex items-center justify-center">
+            <Stethoscope className="w-6 h-6 text-[#1B98E0]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">{t('medicalAdvice')}</h1>
@@ -71,6 +75,12 @@ export default function MedicalAdvice() {
           </p>
         </div>
 
+        {error && (
+          <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm mb-4">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -82,7 +92,7 @@ export default function MedicalAdvice() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
               />
             </div>
             <div>
@@ -95,7 +105,7 @@ export default function MedicalAdvice() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
                 dir="ltr"
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
               />
             </div>
           </div>
@@ -112,7 +122,7 @@ export default function MedicalAdvice() {
                 required
                 placeholder="05xxxxxxxx"
                 dir="ltr"
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
               />
             </div>
             <div>
@@ -126,7 +136,7 @@ export default function MedicalAdvice() {
                 required
                 min="1"
                 max="120"
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
               />
             </div>
           </div>
@@ -170,7 +180,7 @@ export default function MedicalAdvice() {
               onChange={(e) => setForm({ ...form, condition: e.target.value })}
               rows={3}
               placeholder={t('conditionPlaceholder')}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
             />
           </div>
 
@@ -183,7 +193,7 @@ export default function MedicalAdvice() {
               onChange={(e) => setForm({ ...form, medications: e.target.value })}
               rows={2}
               placeholder={t('medicationsPlaceholder')}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
             />
           </div>
 
@@ -197,14 +207,14 @@ export default function MedicalAdvice() {
               rows={5}
               required
               placeholder={t('questionPlaceholder')}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-teal-600 text-white py-3 rounded-xl hover:bg-teal-700 font-medium flex items-center justify-center gap-2 disabled:opacity-70"
+            className="w-full bg-black text-white py-3 rounded-xl hover:bg-gray-800 font-medium flex items-center justify-center gap-2 disabled:opacity-70"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             {t('sendRequest')}

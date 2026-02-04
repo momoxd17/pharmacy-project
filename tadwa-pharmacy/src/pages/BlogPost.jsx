@@ -12,7 +12,7 @@ export default function BlogPost() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center">
         <p className="text-gray-500 mb-4">{t('postNotFound')}</p>
-        <Link to="/blog" className="text-teal-600 hover:underline inline-flex items-center gap-2">
+        <Link to="/blog" className="text-[#004180] hover:text-[#1E9ED8] hover:underline inline-flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
           {t('backToBlog')}
         </Link>
@@ -47,14 +47,14 @@ export default function BlogPost() {
     <article className="max-w-3xl mx-auto px-4 py-8">
       <Link
         to="/blog"
-        className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6 font-medium"
+        className="inline-flex items-center gap-2 text-[#004180] hover:text-[#1E9ED8]  mb-6 font-medium"
       >
         <ArrowLeft className="w-4 h-4" />
         {t('backToBlog')}
       </Link>
 
       <header className="mb-8">
-        <span className="inline-block px-3 py-1 bg-teal-100 text-teal-700 rounded-lg text-sm font-medium mb-4">
+        <span className="inline-block px-3 py-1 bg-[#DFF2F3] text-[#004180] rounded-lg text-sm font-medium mb-4">
           {locale === 'ar' ? section?.nameAr : section?.name}
         </span>
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{title}</h1>
@@ -66,7 +66,7 @@ export default function BlogPost() {
           <span>{post.author}</span>
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 hover:text-teal-600 transition-colors"
+            className="flex items-center gap-2 hover:text-[#004180] hover:text-[#1E9ED8] transition-colors"
             title={t('share')}
           >
             <Share2 className="w-4 h-4" />
@@ -86,7 +86,7 @@ export default function BlogPost() {
       <div className="mt-12 pt-8 border-t border-gray-200">
         <Link
           to="/blog"
-          className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
+          className="inline-flex items-center gap-2 text-[#004180] hover:text-[#1E9ED8]  font-medium"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('backToBlog')}

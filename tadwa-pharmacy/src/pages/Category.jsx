@@ -16,7 +16,7 @@ export default function Category() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 text-center">
         <p className="text-gray-500">{t('categoryNotFound')}</p>
-        <Link to="/" className="text-teal-600 mt-2 inline-block">{t('backToHome')}</Link>
+        <Link to="/" className="text-[#004180] hover:text-[#1E9ED8] mt-2 inline-block">{t('backToHome')}</Link>
       </div>
     )
   }

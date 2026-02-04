@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext'
 
 export default function Cart() {
   const navigate = useNavigate()
-  const { items, updateQuantity, removeFromCart } = useCart()
+  const { items, updateQuantity, removeFromCart, clearCart } = useCart()
   const { t } = useLanguage()
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
@@ -16,7 +16,7 @@ export default function Cart() {
         <p className="text-gray-500 mb-6">{t('emptyCartDesc')}</p>
         <Link
           to="/"
-          className="inline-block bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700"
+          className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
         >
           {t('shopNow')}
         </Link>
@@ -26,7 +26,16 @@ export default function Cart() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">{t('cart')}</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">{t('cart')}</h1>
+        <button
+          onClick={() => { if (confirm(t('confirmClearCart'))) clearCart() }}
+          className="self-start sm:self-center flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          {t('clearCart')}
+        </button>
+      </div>
 
       <div className="space-y-4">
         {items.map((item) => (
@@ -41,7 +50,7 @@ export default function Cart() {
             />
             <div className="flex-1">
               <h3 className="font-medium text-gray-800">{item.name}</h3>
-              <p className="text-teal-600 font-bold">{item.price} {t('sar')}</p>
+              <p className="text-[#004180] font-bold">{item.price} {t('sar')}</p>
               <div className="flex items-center gap-2 mt-2">
                 <button
                   onClick={() => updateQuantity(item.productId, item.quantity - 1)}
@@ -76,11 +85,11 @@ export default function Cart() {
       <div className="mt-8 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div className="flex justify-between text-lg font-bold">
           <span>{t('total')}</span>
-          <span className="text-teal-600">{total} {t('sar')}</span>
+          <span className="text-[#004180]">{total} {t('sar')}</span>
         </div>
         <button
           onClick={() => navigate('/checkout')}
-          className="w-full mt-4 bg-teal-600 text-white py-3 rounded-xl hover:bg-teal-700"
+          className="w-full mt-4 bg-black text-white py-3 rounded-xl hover:bg-gray-800"
         >
           {t('completeOrder')}
         </button>

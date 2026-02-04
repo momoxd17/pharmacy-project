@@ -13,10 +13,10 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      <aside className="w-64 bg-gray-900 text-white flex flex-col fixed inset-y-0 right-0">
+      <aside className="dark-sidebar w-64 bg-gray-900 text-white flex flex-col fixed inset-y-0 right-0">
         <div className="p-6 border-b border-gray-700">
           <Link to="/" className="flex items-center gap-2 text-xl font-bold">
-            <span className="text-teal-400">طب ودواء</span>
+            <span className="text-[#1E9ED8]">طب ودواء</span>
           </Link>
           <p className="text-gray-400 text-sm mt-1">{t('adminPanel')}</p>
         </div>
@@ -30,7 +30,7 @@ export default function AdminLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-teal-600 text-white'
+                    ? 'bg-[#1B98E0] text-white'
                     : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 }`
               }

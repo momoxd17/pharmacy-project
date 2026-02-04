@@ -7,7 +7,7 @@ export default function ProtectedAdminRoute() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin w-10 h-10 border-2 border-teal-600 border-t-transparent rounded-full" />
+        <div className="animate-spin w-10 h-10 border-2 border-[#1B98E0] border-t-transparent rounded-full" />
       </div>
     )
   }

@@ -1,13 +1,53 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #0d9488;
-  --color-primary-dark: #0f766e;
-  --color-primary-light: #14b8a6;
-  --color-accent: #059669;
-  --color-surface: #f0fdfa;
+  --color-brand: #1B98E0;
+  --color-brand-hover: #1E9ED8;
+  --color-link: #004180;
+  --color-link-hover: #1E9ED8;
+  --color-bg: #DFF2F3;
+  --color-header: #DFF2F3;
+  --color-button: #000000;
+  --color-news: #1B98E0;
+  --color-brand-50: #e8f4fc;
+  --color-brand-100: #DFF2F3;
+  --color-brand-500: #1B98E0;
+  --color-brand-600: #004180;
+  --color-brand-700: #003060;
 }
 
 body {
   font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+}
+
+/* Global link styles - readable contrast */
+a {
+  color: #0066CC;
+  font-weight: 500;
+}
+a:hover {
+  color: #004494;
+  text-decoration: underline;
+}
+
+/* Links on dark backgrounds - must be white */
+.header-top-bar a,
+footer a,
+.dark-sidebar a,
+aside.bg-gray-900 a {
+  color: white !important;
+}
+.header-top-bar a:hover,
+footer a:hover,
+.dark-sidebar a:hover,
+aside.bg-gray-900 a:hover {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+  animation: marquee 20s linear infinite;
 }

@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
-import { MessageCircle, X, Send } from 'lucide-react'
+import { MessageCircle, X, Send, Mail } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { apiPost } from '../utils/api'
 
 const botResponses = {
   ar: {
     greeting: 'مرحباً! أنا مساعدك الافتراضي في طب ودواء. كيف يمكنني مساعدتك اليوم؟',
-    default: 'عذراً، لم أتمكن من إيجاد إجابة دقيقة لسؤالك في بياناتنا. للحصول على إجابة أفضل، يرجى التواصل معنا على الهاتف 0569177838 أو البريد الإلكتروني zeedanpharam@gmail.com وسيسعد فريقنا بمساعدتك!',
+    default: 'تم إرسال سؤالك إلينا. سنرد عليك خلال 24 ساعة كحد أقصى. شكراً لثقتك بنا!',
     
     // Delivery & Orders
     delivery: 'التوصيل يستغرق 1-3 أيام عمل داخل الرياض، و3-5 أيام للمناطق الأخرى في المملكة. جميع طلباتنا مؤمنة ومغلفة بعناية.',
@@ -37,10 +37,10 @@ const botResponses = {
     
     // Account
     account: 'إنشاء حساب سهل! اضغط على "إنشاء حساب" في الأعلى، أدخل اسمك وبريدك وكلمة مرور، وستتمكن من تتبع طلباتك وحفظ المفضلات.',
-    password: 'إذا نسيت كلمة المرور، تواصل معنا عبر البريد الإلكتروني zeedanpharam@gmail.com أو الهاتف وسنساعدك في استعادة حسابك.',
+    password: 'إذا نسيت كلمة المرور، تواصل معنا عبر البريد الإلكتروني zeedanpharama@gmail.com أو الهاتف وسنساعدك في استعادة حسابك.',
     
     // Contact & Hours
-    contact: 'يمكنك التواصل معنا عبر: الهاتف 0569177838، البريد الإلكتروني zeedanpharam@gmail.com، أو الواتساب. نحن هنا لخدمتك!',
+    contact: 'يمكنك التواصل معنا عبر: الهاتف 0569177838، البريد الإلكتروني zeedanpharama@gmail.com، أو الواتساب. نحن هنا لخدمتك!',
     hours: 'نحن متاحون على مدار الساعة (24/7) عبر الموقع. خدمة العملاء متاحة من السبت إلى الخميس 9 صباحاً - 10 مساءً.',
     
     // Thanks & Goodbye
@@ -49,7 +49,7 @@ const botResponses = {
   },
   en: {
     greeting: 'Hello! I\'m your virtual assistant at Tadwa Pharmacy. How can I help you today?',
-    default: 'Sorry, I couldn\'t find a precise answer to your question in our data. For a better answer, please contact us at 0569177838 or zeedanpharam@gmail.com and our team will be happy to help you!',
+    default: 'Your question has been sent to us. We will reply within 24 hours at most. Thank you for your trust!',
     
     // Delivery & Orders
     delivery: 'Delivery takes 1-3 business days within Riyadh and 3-5 days for other regions in the Kingdom. All orders are insured and carefully packaged.',
@@ -80,10 +80,10 @@ const botResponses = {
     
     // Account
     account: 'Creating an account is easy! Click "Register" at the top, enter your name, email and password, and you can track orders and save favorites.',
-    password: 'If you forgot your password, contact us via email zeedanpharam@gmail.com or phone and we will help you recover your account.',
+    password: 'If you forgot your password, contact us via email zeedanpharama@gmail.com or phone and we will help you recover your account.',
     
     // Contact & Hours
-    contact: 'You can reach us via: phone 0569177838, email zeedanpharam@gmail.com, or WhatsApp. We are here to serve you!',
+    contact: 'You can reach us via: phone 0569177838, email zeedanpharama@gmail.com, or WhatsApp. We are here to serve you!',
     hours: 'We are available 24/7 via the website. Customer service is available Saturday to Thursday 9 AM - 10 PM.',
     
     // Thanks & Goodbye
@@ -94,8 +94,14 @@ const botResponses = {
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false)
+  const [mode, setMode] = useState('chat')
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
+  const [feedbackEmail, setFeedbackEmail] = useState('')
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [feedbackSent, setFeedbackSent] = useState(false)
+  const [feedbackError, setFeedbackError] = useState('')
+  const [feedbackSending, setFeedbackSending] = useState(false)
   const messagesEndRef = useRef(null)
   const { t, locale } = useLanguage()
 
@@ -162,10 +168,39 @@ export default function Chatbot() {
 
     const response = getResponse(userInput)
     if (response === responses.default) {
-      apiPost('/chatbot-questions', { question: userInput }).catch(() => {})
+      apiPost('/chatbot-questions', { question: userInput }).catch((err) => {
+        console.warn('Could not save chatbot question (is server running?):', err?.message)
+      })
     }
     const botMsg = { from: 'bot', text: response, time: new Date() }
     setMessages((prev) => [...prev, botMsg])
+  }
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault()
+    if (!feedbackEmail.trim() || !feedbackMessage.trim()) return
+    setFeedbackSending(true)
+    setFeedbackError('')
+    try {
+      await apiPost('/feedback', { email: feedbackEmail.trim(), message: feedbackMessage.trim() })
+      setFeedbackSent(true)
+      setFeedbackEmail('')
+      setFeedbackMessage('')
+    } catch (err) {
+      setFeedbackSent(false)
+      setFeedbackError(err?.message === 'NETWORK_ERROR' ? t('serverUnavailable') : (t('serverUnavailable') + ' ' + (err?.message || '')))
+    } finally {
+      setFeedbackSending(false)
+    }
+  }
+
+  const switchToChat = () => {
+    setMode('chat')
+    setFeedbackSent(false)
+  }
+
+  const switchToFeedback = () => {
+    setMode('feedback')
   }
 
   return (
@@ -174,7 +209,7 @@ export default function Chatbot() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 left-6 w-14 h-14 bg-teal-600 text-white rounded-full shadow-lg hover:bg-teal-700 transition-all hover:scale-110 flex items-center justify-center z-50"
+          className="fixed bottom-6 left-6 w-14 h-14 bg-black text-white rounded-full shadow-lg hover:bg-gray-800 transition-all hover:scale-110 flex items-center justify-center z-50"
           title={t('chatWithUs')}
         >
           <MessageCircle className="w-6 h-6" />
@@ -185,25 +220,44 @@ export default function Chatbot() {
       {isOpen && (
         <div className="fixed bottom-6 left-6 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 flex flex-col">
           {/* Header */}
-          <div className="bg-gradient-to-l from-teal-700 to-teal-600 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
+          <div className="bg-gradient-to-l from-[#004180] to-[#1B98E0] text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                 <MessageCircle className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="font-bold">{t('chatbot')}</h3>
-                <p className="text-xs text-teal-100">{t('onlineNow')}</p>
+                <p className="text-xs text-white/90">{t('onlineNow')}</p>
               </div>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => { setIsOpen(false); setMode('chat') }}
               className="p-2 hover:bg-white/10 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Messages */}
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={switchToChat}
+              className={`flex-1 py-2 text-sm font-medium ${mode === 'chat' ? 'border-b-2 border-[#1B98E0] text-[#1B98E0]' : 'text-gray-500'}`}
+            >
+              {t('chatWithUs')}
+            </button>
+            <button
+              onClick={switchToFeedback}
+              className={`flex-1 py-2 text-sm font-medium flex items-center justify-center gap-1 ${mode === 'feedback' ? 'border-b-2 border-[#1B98E0] text-[#1B98E0]' : 'text-gray-500'}`}
+            >
+              <Mail className="w-4 h-4" />
+              {t('feedbackContact')}
+            </button>
+          </div>
+
+          {/* Chat mode */}
+          {mode === 'chat' && (
+          <>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((msg, idx) => (
               <div
@@ -213,7 +267,7 @@ export default function Chatbot() {
                 <div
                   className={`max-w-[80%] px-4 py-2 rounded-2xl ${
                     msg.from === 'user'
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-black text-white'
                       : 'bg-gray-100 text-gray-800'
                   }`}
                 >
@@ -224,7 +278,6 @@ export default function Chatbot() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
           <form onSubmit={handleSend} className="p-4 border-t border-gray-100">
             <div className="flex gap-2">
               <input
@@ -232,17 +285,64 @@ export default function Chatbot() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={t('typeMessage')}
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
               />
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="w-5 h-5" />
               </button>
             </div>
           </form>
+          </>
+          )}
+
+          {/* Feedback mode */}
+          {mode === 'feedback' && (
+            <div className="flex-1 overflow-y-auto p-4">
+              <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                <p className="text-sm text-gray-600">{t('feedbackContactDesc')}</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
+                  <input
+                    type="email"
+                    value={feedbackEmail}
+                    onChange={(e) => setFeedbackEmail(e.target.value)}
+                    placeholder="example@email.com"
+                    required
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0]"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('yourMessage')}</label>
+                  <textarea
+                    value={feedbackMessage}
+                    onChange={(e) => setFeedbackMessage(e.target.value)}
+                    placeholder={t('feedbackPlaceholder')}
+                    required
+                    rows={4}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] resize-none"
+                  />
+                </div>
+                {feedbackSent && (
+                  <p className="text-sm text-green-600">{t('feedbackSent')}</p>
+                )}
+                {feedbackError && (
+                  <p className="text-sm text-red-600">{feedbackError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={feedbackSending}
+                  className="w-full py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {feedbackSending ? t('loading') : t('send')}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       )}
     </>

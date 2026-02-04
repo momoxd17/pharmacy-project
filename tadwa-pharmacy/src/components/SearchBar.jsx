@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Search, Mic, Camera, X } from 'lucide-react'
-import { createWorker } from 'tesseract.js'
 import { useLanguage } from '../context/LanguageContext'
 
 export default function SearchBar({ className = '', onClose, variant = 'desktop' }) {
@@ -87,6 +86,7 @@ export default function SearchBar({ className = '', onClose, variant = 'desktop'
     if (ctx) {
       ctx.drawImage(video, 0, 0)
       try {
+        const { createWorker } = await import('tesseract.js')
         const worker = await createWorker('ara')
         const { data } = await worker.recognize(canvas)
         await worker.terminate()
@@ -120,7 +120,7 @@ export default function SearchBar({ className = '', onClose, variant = 'desktop'
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('searchPlaceholder')}
-          className="w-full pr-10 pl-24 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          className="w-full pr-10 pl-24 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
         />
         <div className="absolute left-1 flex gap-1">
           <button
@@ -165,7 +165,7 @@ export default function SearchBar({ className = '', onClose, variant = 'desktop'
           <button
             onClick={captureAndSearch}
             disabled={ocrLoading}
-            className="mt-6 bg-teal-600 text-white px-8 py-3 rounded-xl hover:bg-teal-700 disabled:opacity-50"
+            className="mt-6 bg-black text-white px-8 py-3 rounded-xl hover:bg-gray-800 disabled:opacity-50"
           >
             {ocrLoading ? t('analyzing') : t('searchByImage')}
           </button>

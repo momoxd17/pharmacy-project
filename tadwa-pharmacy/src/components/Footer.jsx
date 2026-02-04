@@ -7,7 +7,7 @@ export default function Footer() {
   const { t, locale } = useLanguage()
 
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-auto">
+    <footer className="bg-[#004180] text-gray-200 mt-auto">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -19,19 +19,19 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4">{t('shopByCategory')}</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/blog" className="hover:text-teal-400">
+                <Link to="/blog" className="text-white hover:opacity-90">
                   {t('blog')}
                 </Link>
               </li>
               {categories.slice(0, 4).map((cat) => (
                 <li key={cat.slug}>
-                  <Link to={`/category/${cat.slug}`} className="hover:text-teal-400">
+                  <Link to={`/category/${cat.slug}`} className="text-white hover:opacity-90">
                     {locale === 'ar' ? cat.nameAr : cat.name}
                   </Link>
                 </li>
               ))}
               <li>
-                <Link to="/category/vitamins" className="hover:text-teal-400">
+                <Link to="/category/vitamins" className="text-white hover:opacity-90">
                   {t('viewAll')}
                 </Link>
               </li>
@@ -52,22 +52,17 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4">{t('contactUs')}</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/faq" className="hover:text-teal-400">
-                  {t('faq')}
-                </Link>
-              </li>
-              <li>
-                <Link to="/medical-advice" className="hover:text-teal-400">
+                <Link to="/medical-advice" className="text-white hover:opacity-90">
                   {t('medicalAdvice')}
                 </Link>
               </li>
               <li>{t('contactPhone')}: 0569177838</li>
-              <li>{t('contactEmail')}: zeedanpharam@gmail.com</li>
+              <li>{t('contactEmail')}: zeedanpharama@gmail.com</li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm">
+        <div className="border-t border-[#1B98E0]/30 mt-8 pt-8 text-center text-sm">
           <p>© 2025 {t('brand')}. {t('rights')}</p>
         </div>
       </div>

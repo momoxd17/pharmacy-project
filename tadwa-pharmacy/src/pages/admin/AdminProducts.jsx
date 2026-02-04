@@ -1,12 +1,18 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, X } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Upload, FileSpreadsheet } from 'lucide-react'
 import { useProducts } from '../../context/ProductsContext'
 import { useLanguage } from '../../context/LanguageContext'
+import { apiPostFile } from '../../utils/api'
 
 export default function AdminProducts() {
-  const { products, categories, addProduct, updateProduct, deleteProduct } = useProducts()
+  const { products, categories, addProduct, updateProduct, deleteProduct, refetchProducts } = useProducts()
   const { t } = useLanguage()
   const [modalOpen, setModalOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
+  const [importFile, setImportFile] = useState(null)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const [importError, setImportError] = useState(null)
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({
     name: '',
@@ -110,17 +116,59 @@ export default function AdminProducts() {
     if (confirm(t('confirmDelete'))) deleteProduct(id)
   }
 
+  const handleImport = async (e) => {
+    e.preventDefault()
+    if (!importFile) return
+    setImporting(true)
+    setImportError(null)
+    setImportResult(null)
+    try {
+      const formData = new FormData()
+      formData.append('file', importFile)
+      const result = await apiPostFile('/products/import', formData)
+      setImportResult(result)
+      setImportFile(null)
+      refetchProducts()
+    } catch (err) {
+      let msg = err.message || t('importFailed')
+      if (err.message === 'NETWORK_ERROR' || err.status === 404) {
+        msg = t('serverUnavailable')
+      } else if (err.status === 401) {
+        msg = t('pleaseLoginAgain')
+      }
+      setImportError(msg)
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  const closeImportModal = () => {
+    setImportOpen(false)
+    setImportFile(null)
+    setImportError(null)
+    setImportResult(null)
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800">{t('manageProducts')}</h1>
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700"
-        >
-          <Plus className="w-4 h-4" />
-          {t('addProduct')}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setImportOpen(true)}
+            className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50"
+          >
+            <Upload className="w-4 h-4" />
+            {t('importProducts')}
+          </button>
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800"
+          >
+            <Plus className="w-4 h-4" />
+            {t('addProduct')}
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -143,7 +191,7 @@ export default function AdminProducts() {
                     <img src={p.image} alt="" className="w-12 h-12 object-cover rounded-lg" />
                   </td>
                   <td className="py-3 px-4 font-medium text-gray-800">{p.nameAr}</td>
-                  <td className="py-3 px-4 text-teal-600">{p.price} {t('sar')}</td>
+                  <td className="py-3 px-4 text-[#004180]">{p.price} {t('sar')}</td>
                   <td className="py-3 px-4 text-gray-600">{p.categoryAr}</td>
                   <td className="py-3 px-4">
                     <span
@@ -331,7 +379,7 @@ export default function AdminProducts() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="flex-1 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
                 >
                   {editing ? t('saveChanges') : t('add')}
                 </button>
@@ -344,6 +392,72 @@ export default function AdminProducts() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {importOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <FileSpreadsheet className="w-5 h-5" />
+                {t('importProducts')}
+              </h2>
+              <button onClick={closeImportModal} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-600 mb-4 text-sm">{t('importProductsHelp')}</p>
+              <div className="bg-gray-50 rounded-lg p-4 mb-4 text-xs text-gray-600 font-mono">
+                {t('importRequiredFields')}
+              </div>
+              <p className="text-gray-700 mb-4 text-xs">
+                <a href="/products-import-template.csv" download className="text-[#0066CC] font-medium hover:text-[#004494] hover:underline underline-offset-2">{t('downloadTemplate')}</a>
+              </p>
+              <form onSubmit={handleImport} className="space-y-4">
+                <div>
+                  <span className="text-sm font-medium text-gray-700 mb-2 block">{t('selectFile')}</span>
+                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#1B98E0] hover:bg-gray-50/50 transition-colors cursor-pointer">
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                      disabled={importing}
+                    />
+                    <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-700 text-sm font-medium">
+                      {importFile ? importFile.name : t('clickToSelectFile')}
+                    </p>
+                    <p className="text-gray-500 text-xs mt-1">.xlsx, .xls, .csv</p>
+                  </label>
+                </div>
+                {importError && (
+                  <p className="text-red-600 text-sm">{importError}</p>
+                )}
+                {importResult && (
+                  <p className="text-green-600 text-sm">{importResult.message}</p>
+                )}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={!importFile || importing}
+                    className="flex-1 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {importing ? t('loading') : t('import')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeImportModal}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  >
+                    {t('cancel')}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

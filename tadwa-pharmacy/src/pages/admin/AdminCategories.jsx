@@ -58,7 +58,7 @@ export default function AdminCategories() {
         <h1 className="text-2xl font-bold text-gray-800">{t('manageCategories')}</h1>
         <button
           onClick={openAdd}
-          className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700"
+          className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800"
         >
           <Plus className="w-4 h-4" />
           {t('addCategory')}
@@ -139,7 +139,7 @@ export default function AdminCategories() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                  className="flex-1 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
                 >
                   {editing ? t('saveChanges') : t('add')}
                 </button>

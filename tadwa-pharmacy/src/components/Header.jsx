@@ -38,14 +38,20 @@ export default function Header() {
   const getRegionName = (r) => locale === 'ar' ? r.ar : r.en
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50 overflow-visible">
+    <header className="bg-[#DFF2F3] shadow-sm sticky top-0 z-50 overflow-visible">
+      {/* News ticker */}
+      <div className="bg-[#1B98E0] text-white py-2 px-4 overflow-hidden">
+        <div className="max-w-7xl mx-auto text-center text-sm font-medium animate-marquee whitespace-nowrap">
+          {t('freeDelivery')} 100 {t('sar')} • {t('exclusiveOffers')} • {t('fastDelivery')}
+        </div>
+      </div>
       {/* Top bar */}
-      <div className="bg-teal-700 text-white py-2 px-4">
+      <div className="header-top-bar bg-[#004180] text-white py-2 px-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center text-sm">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4" />
             <span>{t('deliveryTo')}: {deliveryRegionName}</span>
-            <button onClick={openDeliveryModal} className="underline hover:no-underline">
+            <button onClick={openDeliveryModal} className="text-white hover:text-white/90 underline hover:no-underline">
               {t('change')}
             </button>
           </div>
@@ -56,17 +62,17 @@ export default function Header() {
             >
               {locale === 'ar' ? 'EN' : 'ع'}
             </button>
-            <Link to="/" className="hover:underline">{t('offers')}</Link>
+            <Link to="/" className="text-white hover:text-white/90 hover:underline">{t('offers')}</Link>
             <span>{t('freeDelivery')} 100 {t('sar')}</span>
           </div>
         </div>
       </div>
 
       {/* Main header */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="max-w-7xl mx-auto px-4 py-4 bg-[#DFF2F3]">
         <div className="flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-teal-700">{t('brand')}</span>
+            <span className="text-2xl font-bold text-[#004180]">{t('brand')}</span>
           </Link>
 
           {/* Search - desktop */}
@@ -85,7 +91,7 @@ export default function Header() {
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-1 text-teal-700 hover:text-teal-600"
+                  className="flex items-center gap-1 text-[#004180] hover:text-[#1E9ED8]"
                 >
                   <User className="w-6 h-6" />
                   <span className="hidden sm:inline max-w-[100px] truncate">{user.name}</span>
@@ -100,7 +106,7 @@ export default function Header() {
                       {user.role === 'admin' && (
                         <Link
                           to="/admin"
-                          className="block px-4 py-2 text-teal-600 hover:bg-teal-50 font-medium"
+                          className="block px-4 py-2 text-[#004180] hover:bg-[#DFF2F3]/50 font-medium"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           {t('adminPanel')}
@@ -131,13 +137,13 @@ export default function Header() {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="text-teal-700 hover:text-teal-600 font-medium text-sm"
+                  className="text-[#004180] hover:text-[#1E9ED8] font-medium text-sm"
                 >
                   {t('login')}
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
+                  className="bg-black hover:bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
                 >
                   {t('register')}
                 </Link>
@@ -146,23 +152,23 @@ export default function Header() {
 
             <Link
               to="/favorites"
-              className="relative flex items-center gap-1 text-teal-700 hover:text-teal-600"
+              className="relative flex items-center gap-1 text-[#004180] hover:text-[#1E9ED8]"
               title={t('favorites')}
             >
               <Heart className="w-6 h-6" />
               {favorites.length > 0 && (
-                <span className="absolute -top-1 -left-1 bg-teal-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -left-1 bg-[#1B98E0] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
                   {favorites.length}
                 </span>
               )}
             </Link>
             <Link
               to="/cart"
-              className="relative flex items-center gap-1 text-teal-700 hover:text-teal-600"
+              className="relative flex items-center gap-1 text-[#004180] hover:text-[#1E9ED8]"
             >
               <ShoppingCart className="w-6 h-6" />
               {itemCount > 0 && (
-                <span className="absolute -top-1 -left-1 bg-teal-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -left-1 bg-[#1B98E0] text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
                   {itemCount}
                 </span>
               )}
@@ -193,40 +199,16 @@ export default function Header() {
       </div>
 
       {/* Navigation */}
-      <nav className="border-t border-gray-100 bg-white overflow-visible">
+      <nav className="border-t border-[#1B98E0]/30 bg-[#DFF2F3] overflow-visible">
         <div className="max-w-7xl mx-auto overflow-visible">
           <ul className="hidden md:flex py-3 gap-6 px-4 items-center overflow-visible">
-            <li>
-              <Link
-                to="/blog"
-                className="text-gray-600 hover:text-teal-600 whitespace-nowrap"
-              >
-                {t('blog')}
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/faq"
-                className="text-gray-600 hover:text-teal-600 whitespace-nowrap"
-              >
-                {t('faq')}
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/medical-advice"
-                className="text-gray-600 hover:text-teal-600 whitespace-nowrap"
-              >
-                {t('medicalAdvice')}
-              </Link>
-            </li>
             <li
               className="relative"
               onMouseEnter={() => setCategoriesOpen(true)}
               onMouseLeave={() => setCategoriesOpen(false)}
             >
               <button
-                className="flex items-center gap-1 text-gray-600 hover:text-teal-600 whitespace-nowrap"
+                className="flex items-center gap-1 text-[#004180] hover:text-[#1E9ED8] whitespace-nowrap"
               >
                 {t('categories')}
                 <ChevronDown className={`w-4 h-4 transition-transform ${categoriesOpen ? 'rotate-180' : ''}`} />
@@ -240,7 +222,7 @@ export default function Header() {
                       <Link
                         key={cat.slug}
                         to={`/category/${cat.slug}`}
-                        className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:bg-[#DFF2F3]/70 hover:text-[#1E9ED8] transition-colors"
                         onClick={() => setCategoriesOpen(false)}
                       >
                         <span className="text-lg">{cat.icon || '📦'}</span>
@@ -249,7 +231,7 @@ export default function Header() {
                     ))}
                     <Link
                       to="/"
-                      className="flex items-center gap-2 px-4 py-2.5 text-teal-600 hover:bg-teal-50 font-medium border-t border-gray-100 mt-1 pt-2"
+                      className="flex items-center gap-2 px-4 py-2.5 text-[#004180] hover:bg-[#DFF2F3]/50 font-medium border-t border-gray-100 mt-1 pt-2"
                       onClick={() => setCategoriesOpen(false)}
                     >
                       {t('viewAll')}
@@ -257,6 +239,22 @@ export default function Header() {
                   </div>
                 </div>
               )}
+            </li>
+            <li>
+              <Link
+                to="/blog"
+                className="text-[#004180] hover:text-[#1E9ED8] whitespace-nowrap"
+              >
+                {t('blog')}
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/medical-advice"
+                className="text-[#004180] hover:text-[#1E9ED8] whitespace-nowrap"
+              >
+                {t('medicalAdvice')}
+              </Link>
             </li>
           </ul>
 
@@ -268,7 +266,7 @@ export default function Header() {
                   {user.role === 'admin' && (
                     <Link
                       to="/admin"
-                      className="block py-2 text-teal-600 font-medium"
+                      className="block py-2 text-[#004180] font-medium"
                       onClick={() => setMenuOpen(false)}
                     >
                       {t('adminPanel')}
@@ -302,7 +300,7 @@ export default function Header() {
                   </Link>
                   <Link
                     to="/register"
-                    className="block py-2 text-teal-600 font-medium"
+                    className="block py-2 text-[#004180] font-medium"
                     onClick={() => setMenuOpen(false)}
                   >
                     {t('register')}
@@ -315,27 +313,6 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)}
               >
                 {t('favorites')}
-              </Link>
-              <Link
-                to="/blog"
-                className="block py-2 text-gray-600"
-                onClick={() => setMenuOpen(false)}
-              >
-                {t('blog')}
-              </Link>
-              <Link
-                to="/faq"
-                className="block py-2 text-gray-600"
-                onClick={() => setMenuOpen(false)}
-              >
-                {t('faq')}
-              </Link>
-              <Link
-                to="/medical-advice"
-                className="block py-2 text-gray-600"
-                onClick={() => setMenuOpen(false)}
-              >
-                {t('medicalAdvice')}
               </Link>
               <div className="border-t border-gray-200 pt-2 mt-2">
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wider py-1">{t('categories')}</p>
@@ -351,6 +328,20 @@ export default function Header() {
                   </Link>
                 ))}
               </div>
+              <Link
+                to="/blog"
+                className="block py-2 text-gray-600"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t('blog')}
+              </Link>
+              <Link
+                to="/medical-advice"
+                className="block py-2 text-gray-600"
+                onClick={() => setMenuOpen(false)}
+              >
+                {t('medicalAdvice')}
+              </Link>
             </div>
           )}
         </div>
@@ -380,7 +371,7 @@ export default function Header() {
             </select>
             <button
               onClick={handleDeliveryChange}
-              className="w-full bg-teal-600 text-white py-3 rounded-xl hover:bg-teal-700"
+              className="w-full bg-black text-white py-3 rounded-xl hover:bg-gray-800"
             >
               {t('save')}
             </button>

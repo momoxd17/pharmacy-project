@@ -1,30 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { apiPost } from '../utils/api'
+import { apiPost, setAuthToken, getAuthToken } from '../utils/api'
 
 const STORAGE_KEY = 'tadwa_auth'
-const USERS_KEY = 'tadwa_users'
-const ADMIN_EMAIL = 'moaazsamehzeedan@gmail.com'
-const ADMIN_PASSWORD = 'momoxd17'
 
 const AuthContext = createContext(null)
-
-function loadUsers() {
-  try {
-    if (typeof localStorage === 'undefined') return []
-    const data = localStorage.getItem(USERS_KEY)
-    const parsed = data ? JSON.parse(data) : []
-    const users = Array.isArray(parsed) ? parsed : []
-    return users.map((u) => ({ ...u, role: u.role || 'user' }))
-  } catch {
-    return []
-  }
-}
-
-function saveUsers(users) {
-  try {
-    if (typeof localStorage !== 'undefined') localStorage.setItem(USERS_KEY, JSON.stringify(users))
-  } catch {}
-}
 
 function loadSession() {
   try {
@@ -52,46 +31,45 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    let users = loadUsers()
-    const adminExists = users.some((u) => u.email.toLowerCase() === ADMIN_EMAIL)
-    if (!adminExists) {
-      const defaultAdmin = {
-        id: crypto.randomUUID(),
-        name: 'مدير النظام',
-        email: ADMIN_EMAIL,
-        password: ADMIN_PASSWORD,
-        role: 'admin',
-      }
-      users = [defaultAdmin, ...users]
-      saveUsers(users)
-    }
     const saved = loadSession()
-    if (saved) {
-      const fullUser = users.find((u) => u.id === saved.id)
-      const role = fullUser?.role ?? saved.role ?? 'user'
-      const updated = { ...saved, role }
-      setUser(updated)
-      saveSession(updated)
+    const token = getAuthToken()
+    if (saved && token) {
+      setUser(saved)
     } else {
       setUser(null)
     }
     setIsLoading(false)
   }, [])
 
-  const login = async (email, password) => {
-    const users = loadUsers()
-    const normalizedEmail = email.trim().toLowerCase()
-    const found = users.find((u) => u.email.toLowerCase() === normalizedEmail)
-
-    if (!found || found.password !== password) {
-      return { success: false, error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' }
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null)
+      saveSession(null)
     }
+    window.addEventListener('auth:unauthorized', handleUnauthorized)
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized)
+  }, [])
 
-    const { id, email: userEmail, name, role } = found
-    const sessionUser = { id, email: userEmail, name, role: role || 'user' }
-    setUser(sessionUser)
-    saveSession(sessionUser)
-    return { success: true }
+  const login = async (email, password) => {
+    try {
+      const res = await apiPost('/auth/login', { email, password })
+      if (res.token && res.user) {
+        setAuthToken(res.token)
+        saveSession(res.user)
+        setUser(res.user)
+        return { success: true }
+      }
+    } catch (err) {
+      const msg = err.message || ''
+      if (msg === 'NETWORK_ERROR' || err.status === 404 || err.status >= 500) {
+        return { success: false, error: 'الخادم غير متاح. تأكد من تشغيل السيرفر (npm run server)' }
+      }
+      if (err.status === 401 || msg.includes('صحيحة')) {
+        return { success: false, error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' }
+      }
+      return { success: false, error: msg || 'البريد الإلكتروني أو كلمة المرور غير صحيحة' }
+    }
+    return { success: false, error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' }
   }
 
   const register = async (name, email, password) => {
@@ -102,47 +80,37 @@ export function AuthProvider({ children }) {
     if (!trimmedName || !trimmedEmail || !trimmedPassword) {
       return { success: false, error: 'يرجى ملء جميع الحقول' }
     }
-
     if (trimmedPassword.length < 6) {
       return { success: false, error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' }
     }
 
-    const users = loadUsers()
-    if (users.some((u) => u.email.toLowerCase() === trimmedEmail)) {
-      return { success: false, error: 'هذا البريد الإلكتروني مسجل مسبقاً' }
-    }
-
-    const newUser = {
-      id: crypto.randomUUID(),
-      name: trimmedName,
-      email: trimmedEmail,
-      password: trimmedPassword,
-      role: 'user',
-    }
-    users.push(newUser)
-    saveUsers(users)
-
     try {
       await apiPost('/users', {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        password: newUser.password,
-        role: newUser.role,
+        id: crypto.randomUUID(),
+        name: trimmedName,
+        email: trimmedEmail,
+        password: trimmedPassword,
+        role: 'user',
       })
-    } catch {
-      // DB offline - user still saved in localStorage
+    } catch (err) {
+      const msg = err.message || ''
+      if (err.status === 409 || msg.toLowerCase().includes('already') || msg.toLowerCase().includes('مسجل')) {
+        return { success: false, error: 'هذا البريد الإلكتروني مسجل مسبقاً' }
+      }
+      if (msg === 'NETWORK_ERROR' || err.status === 404 || err.status >= 500) {
+        return { success: false, error: 'الخادم غير متاح. تأكد من تشغيل السيرفر (npm run server)' }
+      }
+      return { success: false, error: msg || 'فشل التسجيل' }
     }
 
-    const sessionUser = { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role }
-    setUser(sessionUser)
-    saveSession(sessionUser)
-    return { success: true }
+    const loginRes = await login(trimmedEmail, trimmedPassword)
+    return loginRes
   }
 
   const logout = () => {
     setUser(null)
     saveSession(null)
+    setAuthToken(null)
   }
 
   return (

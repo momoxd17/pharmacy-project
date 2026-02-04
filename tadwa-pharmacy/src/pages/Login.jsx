@@ -36,8 +36,8 @@ export default function Login() {
     <div className="max-w-md mx-auto px-4 py-12">
       <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
-            <LogIn className="w-6 h-6 text-teal-600" />
+          <div className="w-12 h-12 rounded-full bg-[#DFF2F3] flex items-center justify-center">
+            <LogIn className="w-6 h-6 text-[#004180] hover:text-[#1E9ED8]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">{t('loginTitle')}</h1>
@@ -64,7 +64,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full pr-10 pl-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full pr-10 pl-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
                 placeholder="example@email.com"
                 dir="ltr"
                 autoComplete="email"
@@ -84,7 +84,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full pr-10 pl-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full pr-10 pl-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent"
                 placeholder="••••••••"
                 dir="ltr"
                 autoComplete="current-password"
@@ -95,7 +95,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? t('loggingIn') : t('loginBtn')}
           </button>
@@ -103,7 +103,7 @@ export default function Login() {
 
         <p className="mt-6 text-center text-gray-600 text-sm">
           {t('noAccount')}{' '}
-          <Link to="/register" className="text-teal-600 font-medium hover:underline">
+          <Link to="/register" className="text-[#004180] hover:text-[#1E9ED8] font-medium hover:underline">
             {t('createAccount')}
           </Link>
         </p>

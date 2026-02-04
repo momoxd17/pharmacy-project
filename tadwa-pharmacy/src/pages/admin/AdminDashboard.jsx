@@ -1,4 +1,4 @@
-import { Package, FolderTree, TrendingUp } from 'lucide-react'
+import { Package, FolderTree, TrendingUp, Upload } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useProducts } from '../../context/ProductsContext'
 import { useLanguage } from '../../context/LanguageContext'
@@ -8,14 +8,23 @@ export default function AdminDashboard() {
   const { t } = useLanguage()
 
   const stats = [
-    { label: t('totalProducts'), value: products.length, icon: Package, color: 'bg-teal-500', to: '/admin/products' },
+    { label: t('totalProducts'), value: products.length, icon: Package, color: 'bg-[#1B98E0]', to: '/admin/products' },
     { label: t('categoryCount'), value: categories.length, icon: FolderTree, color: 'bg-blue-500', to: '/admin/categories' },
     { label: t('availableProducts'), value: products.filter((p) => p.inStock).length, icon: TrendingUp, color: 'bg-green-500', to: '/admin/products' },
   ]
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-8">{t('dashboard')}</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <h1 className="text-2xl font-bold text-gray-800">{t('dashboard')}</h1>
+        <Link
+          to="/admin/products"
+          className="inline-flex items-center gap-2 bg-[#004180] text-white px-4 py-2 rounded-lg hover:bg-[#1B98E0] transition-colors"
+        >
+          <Upload className="w-5 h-5" />
+          {t('importProducts')}
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {stats.map(({ label, value, icon: Icon, color, to }) => (
@@ -49,7 +58,7 @@ export default function AdminDashboard() {
                 className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
               >
                 <span className="text-gray-800">{p.nameAr}</span>
-                <span className="text-teal-600 font-medium">{p.price} {t('sar')}</span>
+                <span className="text-[#004180] font-medium">{p.price} {t('sar')}</span>
               </li>
             ))}
           </ul>

@@ -46,7 +46,7 @@ export default function Checkout() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
         <h2 className="text-xl font-bold text-gray-800 mb-4">{t('emptyCart')}</h2>
-        <Link to="/" className="text-teal-600 hover:underline">
+        <Link to="/" className="text-[#004180] hover:text-[#1E9ED8] hover:underline">
           {t('backToShop')}
         </Link>
       </div>
@@ -137,17 +137,17 @@ export default function Checkout() {
             </div>
             <div className="border-t pt-4 flex justify-between font-bold text-lg">
               <span>{t('total')}</span>
-              <span className="text-teal-600">{total} {t('sar')}</span>
+              <span className="text-[#004180] hover:text-[#1E9ED8]">{total} {t('sar')}</span>
             </div>
             <button
               type="submit"
-              className="w-full mt-6 bg-teal-600 text-white py-3 rounded-xl hover:bg-teal-700 font-medium"
+              className="w-full mt-6 bg-black text-white py-3 rounded-xl hover:bg-gray-800 font-medium"
             >
               {t('proceedToPay')}
             </button>
             <Link
               to="/cart"
-              className="block text-center text-teal-600 mt-3 text-sm hover:underline"
+              className="block text-center text-[#004180] hover:text-[#1E9ED8] mt-3 text-sm hover:underline"
             >
               {t('editCart')}
             </Link>

@@ -6,7 +6,7 @@ import { blogPosts } from '../data/blog'
 import ProductCard from '../components/ProductCard'
 
 export default function Home() {
-  const { categories, products } = useProducts()
+  const { categories, products, productsLoading } = useProducts()
   const { t, locale } = useLanguage()
   const featuredProducts = products.slice(0, 8)
 
@@ -26,10 +26,10 @@ export default function Home() {
 
   return (
     <div>
-      <section className="bg-gradient-to-l from-teal-700 to-teal-600 text-white py-16 px-4">
+      <section className="bg-gradient-to-l from-[#004180] to-[#1B98E0] text-white py-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-3xl md:text-5xl font-bold mb-4">{t('brand')}</h1>
-          <p className="text-xl md:text-2xl text-teal-100 mb-6">{t('heroSubtitle')}</p>
+          <p className="text-xl md:text-2xl text-white/90 mb-6">{t('heroSubtitle')}</p>
         </div>
       </section>
 
@@ -40,7 +40,7 @@ export default function Home() {
               key={title}
               className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center text-center"
             >
-              <Icon className="w-10 h-10 text-teal-600 mb-2" />
+              <Icon className="w-10 h-10 text-[#1B98E0] mb-2" />
               <h3 className="font-semibold text-gray-800">{title}</h3>
               <p className="text-sm text-gray-500">{desc}</p>
             </div>
@@ -55,37 +55,43 @@ export default function Home() {
             <Link
               key={cat.slug}
               to={`/category/${cat.slug}`}
-              className="bg-white rounded-xl shadow-sm p-6 flex flex-col items-center hover:shadow-md transition-shadow border border-gray-100"
+              className="bg-white rounded-xl shadow-sm p-6 flex flex-col items-center hover:shadow-md transition-shadow border border-gray-100 group"
             >
               <span className="text-4xl mb-2">{cat.icon}</span>
               <span className="font-medium text-gray-800 text-center">
                 {locale === 'ar' ? cat.nameAr : cat.name}
               </span>
-              <span className="text-sm text-teal-600 mt-1">{t('viewAll')}</span>
+              <span className="text-sm text-[#004180] mt-1 group-hover:text-[#1E9ED8]">{t('viewAll')}</span>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-12 bg-gray-50/50">
+      <section className="max-w-7xl mx-auto px-4 py-12 bg-[#DFF2F3]/50">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">{t('featuredProducts')}</h2>
-          <Link to="/category/vitamins" className="text-teal-600 hover:underline">
+          <Link to="/category/vitamins" className="text-[#004180] hover:text-[#1E9ED8] hover:underline">
             {t('viewAll')}
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {productsLoading ? (
+            <div className="col-span-full flex justify-center py-12">
+              <div className="animate-spin w-10 h-10 border-2 border-[#1B98E0] border-t-transparent rounded-full" />
+            </div>
+          ) : (
+            featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
         </div>
       </section>
 
       {/* Blog preview */}
-      <section className="max-w-7xl mx-auto px-4 py-12 bg-gray-50/50">
+      <section className="max-w-7xl mx-auto px-4 py-12 bg-[#DFF2F3]/50">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">{t('latestArticles')}</h2>
-          <Link to="/blog" className="text-teal-600 hover:underline flex items-center gap-2">
+          <Link to="/blog" className="text-[#004180] hover:text-[#1E9ED8] hover:underline flex items-center gap-2">
             {t('viewAll')}
             <BookOpen className="w-5 h-5" />
           </Link>
@@ -104,11 +110,13 @@ export default function Home() {
                   <img
                     src={post.image}
                     alt={title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-bold text-gray-800 line-clamp-2 group-hover:text-teal-600 transition-colors">
+                  <h3 className="font-bold text-gray-800 line-clamp-2 group-hover:text-[#1E9ED8] transition-colors">
                     {title}
                   </h3>
                   <p className="text-sm text-gray-500 mt-1 line-clamp-2">{excerpt}</p>

@@ -29,7 +29,7 @@ export default function FAQ() {
           onClick={() => setActiveCategory('')}
           className={`px-4 py-2 rounded-xl font-medium transition-colors ${
             !activeCategory
-              ? 'bg-teal-600 text-white'
+              ? 'bg-[#1B98E0] text-white'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
@@ -41,7 +41,7 @@ export default function FAQ() {
             onClick={() => setActiveCategory(cat.slug)}
             className={`px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 ${
               activeCategory === cat.slug
-                ? 'bg-teal-600 text-white'
+                ? 'bg-[#1B98E0] text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -68,7 +68,7 @@ export default function FAQ() {
               >
                 <span className="font-medium text-gray-800 flex-1">{question}</span>
                 {isOpen ? (
-                  <ChevronUp className="w-5 h-5 text-teal-600 flex-shrink-0" />
+                  <ChevronUp className="w-5 h-5 text-[#1B98E0] flex-shrink-0" />
                 ) : (
                   <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
                 )}

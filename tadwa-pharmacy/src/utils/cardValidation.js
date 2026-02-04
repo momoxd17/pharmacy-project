@@ -34,3 +34,12 @@ export function validateCVV(cvv) {
   const digits = cvv.replace(/\D/g, '')
   return digits.length >= 3 && digits.length <= 4
 }
+
+export function getCardBrand(cardNumber) {
+  const digits = cardNumber.replace(/\D/g, '')
+  if (/^4/.test(digits)) return 'visa'
+  if (/^5[1-5]/.test(digits) || /^2[2-7]/.test(digits)) return 'mastercard'
+  if (/^3[47]/.test(digits)) return 'amex'
+  if (/^6(?:011|5)/.test(digits)) return 'discover'
+  return 'card'
+}

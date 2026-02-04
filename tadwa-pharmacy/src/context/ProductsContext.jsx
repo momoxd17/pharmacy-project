@@ -1,36 +1,121 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { categories as defaultCategories, products as defaultProducts } from '../data/products'
 
 const PRODUCTS_KEY = 'tadwa_products'
 const CATEGORIES_KEY = 'tadwa_categories'
 
 const ProductsContext = createContext(null)
 
+const STORAGE_VERSION = 2
+
 function loadFromStorage(key, fallback) {
   try {
     if (typeof localStorage === 'undefined') return fallback
+    const ver = localStorage.getItem('tadwa_products_version')
+    if (ver !== String(STORAGE_VERSION)) {
+      localStorage.removeItem(PRODUCTS_KEY)
+      localStorage.removeItem(CATEGORIES_KEY)
+      localStorage.setItem('tadwa_products_version', String(STORAGE_VERSION))
+      return fallback
+    }
     const data = localStorage.getItem(key)
-    if (data) return JSON.parse(data)
-  } catch {}
-  return fallback
-}
-
-function saveToStorage(key, data) {
-  try {
-    if (typeof localStorage !== 'undefined') localStorage.setItem(key, JSON.stringify(data))
-  } catch {}
+    return data ? JSON.parse(data) : fallback
+  } catch {
+    return fallback
+  }
 }
 
 export function ProductsProvider({ children }) {
-  const [products, setProducts] = useState(() => loadFromStorage(PRODUCTS_KEY, defaultProducts))
-  const [categories, setCategories] = useState(() => loadFromStorage(CATEGORIES_KEY, defaultCategories))
+  const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
+  const [productsLoading, setProductsLoading] = useState(true)
+
+  const refetchProducts = async () => {
+    setProductsLoading(true)
+    try {
+      const res = await fetch('/products.json?t=' + Date.now())
+      if (!res.ok) throw new Error('Failed to load')
+      const data = await res.json()
+      if (data.products?.length > 0) setProducts(data.products)
+      else {
+        const fromStorage = loadFromStorage(PRODUCTS_KEY, [])
+        if (fromStorage.length > 0) setProducts(fromStorage)
+      }
+      if (data.categories?.length > 0) setCategories(data.categories)
+      else {
+        const fromStorage = loadFromStorage(CATEGORIES_KEY, [])
+        if (fromStorage.length > 0) setCategories(fromStorage)
+      }
+    } catch {
+      const p = loadFromStorage(PRODUCTS_KEY, [])
+      const c = loadFromStorage(CATEGORIES_KEY, [])
+      if (p.length > 0) setProducts(p)
+      if (c.length > 0) setCategories(c)
+    } finally {
+      setProductsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    saveToStorage(PRODUCTS_KEY, products)
+    let cancelled = false
+    async function load() {
+      setProductsLoading(true)
+      try {
+        const res = await fetch('/products.json?t=' + Date.now(), { cache: 'no-store' })
+        if (!res.ok) throw new Error('Failed to load')
+        const data = await res.json()
+        if (cancelled) return
+        if (data.products?.length > 0) {
+          setProducts(data.products)
+          try {
+            localStorage.setItem(PRODUCTS_KEY, JSON.stringify(data.products))
+          } catch {}
+        } else {
+          const fromStorage = loadFromStorage(PRODUCTS_KEY, [])
+          if (fromStorage.length > 0) setProducts(fromStorage)
+        }
+        if (data.categories?.length > 0) {
+          setCategories(data.categories)
+          try {
+            localStorage.setItem(CATEGORIES_KEY, JSON.stringify(data.categories))
+          } catch {}
+        } else {
+          const fromStorage = loadFromStorage(CATEGORIES_KEY, [])
+          if (fromStorage.length > 0) setCategories(fromStorage)
+        }
+      } catch {
+        if (cancelled) return
+        const p = loadFromStorage(PRODUCTS_KEY, [])
+        const c = loadFromStorage(CATEGORIES_KEY, [])
+        if (p.length > 0) setProducts(p)
+        if (c.length > 0) setCategories(c)
+      } finally {
+        if (!cancelled) setProductsLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    if (products.length > 0) {
+      const id = setTimeout(() => {
+        try {
+          localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products))
+        } catch {}
+      }, 300)
+      return () => clearTimeout(id)
+    }
   }, [products])
 
   useEffect(() => {
-    saveToStorage(CATEGORIES_KEY, categories)
+    if (categories.length > 0) {
+      const id = setTimeout(() => {
+        try {
+          localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
+        } catch {}
+      }, 300)
+      return () => clearTimeout(id)
+    }
   }, [categories])
 
   const addProduct = (product) => {
@@ -81,6 +166,8 @@ export function ProductsProvider({ children }) {
       value={{
         products,
         categories,
+        productsLoading,
+        refetchProducts,
         addProduct,
         updateProduct,
         deleteProduct,

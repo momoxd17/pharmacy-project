@@ -1,17 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { CreditCard, Banknote, CheckCircle } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
-import { luhnCheck, validateExpiry, validateCVV } from '../utils/cardValidation'
+import { luhnCheck, validateExpiry, validateCVV, getCardBrand } from '../utils/cardValidation'
+import { apiGet, apiPost } from '../utils/api'
 
 export default function Payment() {
   const location = useLocation()
   const { clearCart } = useCart()
+  const { user } = useAuth()
   const { t } = useLanguage()
   const state = location.state
   const [paymentMethod, setPaymentMethod] = useState('cod')
   const [orderComplete, setOrderComplete] = useState(false)
+  const [savedCards, setSavedCards] = useState([])
+  const [selectedCardId, setSelectedCardId] = useState('')
+  const [useNewCard, setUseNewCard] = useState(true)
+  const [saveNewCard, setSaveNewCard] = useState(false)
   const [cardForm, setCardForm] = useState({
     cardNumber: '',
     expiry: '',
@@ -20,6 +27,12 @@ export default function Payment() {
   })
   const [cardErrors, setCardErrors] = useState({})
   const [cardTouched, setCardTouched] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      apiGet('/users/me/cards').then(setSavedCards).catch(() => setSavedCards([]))
+    }
+  }, [user])
 
   const formatCardNumber = (value) => {
     const digits = value.replace(/\D/g, '').slice(0, 19)
@@ -59,7 +72,7 @@ export default function Payment() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
         <h2 className="text-xl font-bold text-gray-800 mb-4">{t('orderNotFound')}</h2>
-        <Link to="/cart" className="text-teal-600 hover:underline">
+        <Link to="/cart" className="text-[#004180] hover:text-[#1E9ED8] hover:underline">
           {t('backToCart')}
         </Link>
       </div>
@@ -68,10 +81,37 @@ export default function Payment() {
 
   const { order } = state
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (paymentMethod === 'card') {
-      setCardTouched(true)
-      if (!validateCard()) return
+      if (useNewCard) {
+        setCardTouched(true)
+        if (!validateCard()) return
+        if (user && saveNewCard) {
+          try {
+            const digits = cardForm.cardNumber.replace(/\D/g, '')
+            const last4 = digits.slice(-4)
+            const brand = getCardBrand(cardForm.cardNumber)
+            await apiPost('/users/me/cards', {
+              last4,
+              brand,
+              expiry: cardForm.expiry,
+              cardholderName: cardForm.cardholderName,
+            })
+          } catch (e) {
+            // ignore save error, order still proceeds
+          }
+        }
+      } else if (selectedCardId) {
+        // Using saved card - CVV required (never stored)
+        setCardTouched(true)
+        if (!cardForm.cvv || cardForm.cvv.replace(/\D/g, '').length < 3) {
+          setCardErrors({ cvv: t('errCvv') })
+          return
+        }
+      } else {
+        setCardTouched(true)
+        return
+      }
     }
     clearCart()
     setOrderComplete(true)
@@ -89,7 +129,7 @@ export default function Payment() {
         </p>
         <Link
           to="/"
-          className="inline-block bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700"
+          className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
         >
           {t('backToShop')}
         </Link>
@@ -109,7 +149,7 @@ export default function Payment() {
           <div className="space-y-3">
             <label
               className={`flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-colors ${
-                paymentMethod === 'cod' ? 'border-teal-600 bg-teal-50' : 'border-gray-200'
+                paymentMethod === 'cod' ? 'border-[#1B98E0] bg-[#DFF2F3]/50' : 'border-gray-200'
               }`}
             >
               <input
@@ -119,7 +159,7 @@ export default function Payment() {
                 onChange={() => setPaymentMethod('cod')}
                 className="hidden"
               />
-              <Banknote className="w-8 h-8 text-teal-600" />
+              <Banknote className="w-8 h-8 text-[#004180] hover:text-[#1E9ED8]" />
               <div>
                 <p className="font-medium text-gray-800">{t('payOnDeliveryOption')}</p>
                 <p className="text-sm text-gray-500">{t('payOnDeliveryDesc2')}</p>
@@ -127,7 +167,7 @@ export default function Payment() {
             </label>
             <label
               className={`flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-colors ${
-                paymentMethod === 'card' ? 'border-teal-600 bg-teal-50' : 'border-gray-200'
+                paymentMethod === 'card' ? 'border-[#1B98E0] bg-[#DFF2F3]/50' : 'border-gray-200'
               }`}
             >
               <input
@@ -137,7 +177,7 @@ export default function Payment() {
                 onChange={() => setPaymentMethod('card')}
                 className="hidden"
               />
-              <CreditCard className="w-8 h-8 text-teal-600" />
+              <CreditCard className="w-8 h-8 text-[#004180] hover:text-[#1E9ED8]" />
               <div>
                 <p className="font-medium text-gray-800">{t('payByCard')}</p>
                 <p className="text-sm text-gray-500">{t('payByCardDesc')}</p>
@@ -148,6 +188,63 @@ export default function Payment() {
           {paymentMethod === 'card' && (
             <div className="mt-6 p-4 border border-gray-200 rounded-xl space-y-4 bg-white">
               <h3 className="font-medium text-gray-800">{t('cardDetails')}</h3>
+
+              {user && savedCards.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">{t('savedCards')}</p>
+                  {savedCards.map((c) => (
+                    <label
+                      key={c.id}
+                      className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer ${
+                        !useNewCard && selectedCardId === c.id ? 'border-[#1B98E0] bg-[#DFF2F3]/30' : 'border-gray-200'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="cardChoice"
+                        checked={!useNewCard && selectedCardId === c.id}
+                        onChange={() => { setUseNewCard(false); setSelectedCardId(c.id); setCardTouched(false) }}
+                      />
+                      <CreditCard className="w-5 h-5 text-gray-500" />
+                      <span className="font-mono">
+                        •••• •••• •••• {c.last4} — {c.expiry}
+                      </span>
+                    </label>
+                  ))}
+                  <label className="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer">
+                    <input
+                      type="radio"
+                      name="cardChoice"
+                      checked={useNewCard}
+                      onChange={() => { setUseNewCard(true); setSelectedCardId('') }}
+                    />
+                    <span className="text-gray-700">{t('useNewCard')}</span>
+                  </label>
+                </div>
+              )}
+
+              {!useNewCard && selectedCardId && savedCards.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                  <input
+                    type="password"
+                    value={cardForm.cvv}
+                    onChange={(e) => setCardForm({ ...cardForm, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                    placeholder="123"
+                    className={`w-full max-w-[120px] px-4 py-3 border rounded-lg font-mono ${
+                      showCardErrors && cardErrors.cvv ? 'border-red-500' : 'border-gray-200'
+                    }`}
+                    dir="ltr"
+                    maxLength={4}
+                  />
+                  {showCardErrors && cardErrors.cvv && (
+                    <p className="text-red-500 text-sm mt-1">{cardErrors.cvv}</p>
+                  )}
+                </div>
+              )}
+
+              {(useNewCard || savedCards.length === 0) && (
+                <>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('cardNumber')}</label>
                 <input
@@ -216,6 +313,18 @@ export default function Payment() {
                   <p className="text-red-500 text-sm mt-1">{cardErrors.cardholderName}</p>
                 )}
               </div>
+              {user && (
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={saveNewCard}
+                    onChange={(e) => setSaveNewCard(e.target.checked)}
+                  />
+                  <span className="text-sm text-gray-600">{t('saveCardForLater')}</span>
+                </label>
+              )}
+                </>
+              )}
             </div>
           )}
 
@@ -243,17 +352,17 @@ export default function Payment() {
             </div>
             <div className="border-t pt-4 flex justify-between font-bold text-lg">
               <span>{t('total')}</span>
-              <span className="text-teal-600">{order.total} {t('sar')}</span>
+              <span className="text-[#004180] hover:text-[#1E9ED8]">{order.total} {t('sar')}</span>
             </div>
             <button
               onClick={handleConfirm}
-              className="w-full mt-6 bg-teal-600 text-white py-3 rounded-xl hover:bg-teal-700 font-medium"
+              className="w-full mt-6 bg-black text-white py-3 rounded-xl hover:bg-gray-800 font-medium"
             >
               {t('confirmOrder')}
             </button>
             <Link
               to="/checkout"
-              className="block text-center text-teal-600 mt-3 text-sm hover:underline"
+              className="block text-center text-[#004180] hover:text-[#1E9ED8] mt-3 text-sm hover:underline"
             >
               {t('editShipping')}
             </Link>

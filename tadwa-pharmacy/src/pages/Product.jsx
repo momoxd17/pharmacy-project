@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ShoppingCart, Heart, Share2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ShoppingCart, Heart, Share2, ChevronLeft, ChevronRight, Package, Search } from 'lucide-react'
 import { useProducts } from '../context/ProductsContext'
 import { useCart } from '../context/CartContext'
 import { useFavorites } from '../context/FavoritesContext'
@@ -17,15 +17,135 @@ export default function Product() {
   const { products } = useProducts()
   const { isFavorite, toggleFavorite } = useFavorites()
   const { t, locale } = useLanguage()
-  const product = products.find((p) => p.id === id)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
   const [selectedImageIdx, setSelectedImageIdx] = useState(0)
   const [shareOpen, setShareOpen] = useState(false)
+
+  // Show all products table when id is "all"
+  if (id === 'all') {
+    const perPage = 25
+    const filtered = products.filter((p) => {
+      const q = search.toLowerCase()
+      const name = (p.name || '').toLowerCase()
+      const nameAr = (p.nameAr || '').toLowerCase()
+      const cat = (p.categoryAr || p.category || '').toLowerCase()
+      const barcode = (p.barcode || '').toLowerCase()
+      return !q || name.includes(q) || nameAr.includes(q) || cat.includes(q) || barcode.includes(q)
+    })
+    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
+    const paginated = filtered.slice(page * perPage, (page + 1) * perPage)
+    const isRtl = locale === 'ar'
+
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <Package className="w-7 h-7 text-[#1B98E0]" />
+            {t('allProducts')}
+          </h1>
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 ltr:left-3 rtl:right-3" style={{ [isRtl ? 'right' : 'left']: '0.75rem' }} />
+            <input
+              type="text"
+              placeholder={t('searchPlaceholder') || 'Search products...'}
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(0) }}
+              className={`w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1B98E0] focus:border-transparent ${isRtl ? 'pl-4 pr-10' : ''}`}
+            />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[#004180] text-white">
+                <tr>
+                  <th className={`px-4 py-3 text-left font-semibold ${isRtl ? 'text-right' : 'text-left'}`}>#</th>
+                  <th className={`px-4 py-3 font-semibold ${isRtl ? 'text-right' : 'text-left'}`}>{locale === 'ar' ? 'المنتج' : 'Product'}</th>
+                  <th className={`px-4 py-3 font-semibold ${isRtl ? 'text-right' : 'text-left'}`}>{locale === 'ar' ? 'الباركود' : 'Barcode'}</th>
+                  <th className={`px-4 py-3 font-semibold ${isRtl ? 'text-right' : 'text-left'}`}>{locale === 'ar' ? 'الفئة' : 'Category'}</th>
+                  <th className={`px-4 py-3 font-semibold ${isRtl ? 'text-right' : 'text-left'}`}>{t('price')} ({t('sar')})</th>
+                  <th className={`px-4 py-3 font-semibold ${isRtl ? 'text-right' : 'text-left'}`}>{locale === 'ar' ? 'الكمية' : 'Stock'}</th>
+                  <th className={`px-4 py-3 font-semibold ${isRtl ? 'text-right' : 'text-left'}`}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginated.map((p, i) => (
+                  <tr
+                    key={p.id}
+                    className="border-t border-gray-100 hover:bg-[#DFF2F3]/50 transition-colors"
+                  >
+                    <td className="px-4 py-3 text-gray-500">{page * perPage + i + 1}</td>
+                    <td className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>
+                      <Link to={`/product/${p.id}`} className="text-[#004180] hover:text-[#1E9ED8] font-medium">
+                        {locale === 'ar' ? p.nameAr : p.name}
+                      </Link>
+                    </td>
+                    <td className={`px-4 py-3 text-gray-600 ${isRtl ? 'text-right' : 'text-left'}`}>{p.barcode || '-'}</td>
+                    <td className={`px-4 py-3 text-gray-600 ${isRtl ? 'text-right' : 'text-left'}`}>{locale === 'ar' ? p.categoryAr : p.category}</td>
+                    <td className={`px-4 py-3 font-medium text-[#004180] ${isRtl ? 'text-right' : 'text-left'}`}>{p.price}</td>
+                    <td className={`px-4 py-3 ${isRtl ? 'text-right' : 'text-left'}`}>
+                      <span className={p.inStock ? 'text-green-600' : 'text-red-600'}>
+                        {p.quantityOnHand ?? (p.inStock ? '✓' : '0')}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/product/${p.id}`}
+                        className="text-[#1B98E0] hover:text-[#004180] text-xs font-medium"
+                      >
+                        {locale === 'ar' ? 'عرض' : 'View'}
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {filtered.length === 0 && (
+            <p className="text-center py-12 text-gray-500">{t('noProductsInCategory')}</p>
+          )}
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-6">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-4 py-2 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              {locale === 'ar' ? 'السابق' : 'Previous'}
+            </button>
+            <span className="px-4 py-2 text-gray-600">
+              {page + 1} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="px-4 py-2 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              {locale === 'ar' ? 'التالي' : 'Next'}
+            </button>
+          </div>
+        )}
+
+        <p className="text-sm text-gray-500 mt-4">
+          {filtered.length} {t('productsInCategory')}
+        </p>
+      </div>
+    )
+  }
+
+  const product = products.find((p) => p.id === id)
 
   if (!product) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12 text-center">
         <p className="text-gray-500">{t('productNotFound')}</p>
-        <Link to="/" className="text-teal-600 mt-2 inline-block">{t('backToHome')}</Link>
+        <Link to="/product/all" className="text-[#004180] hover:text-[#1E9ED8] mt-2 inline-block">{t('viewAll')} {t('productsInCategory')}</Link>
+        <br />
+        <Link to="/" className="text-[#004180] hover:text-[#1E9ED8] mt-2 inline-block">{t('backToHome')}</Link>
       </div>
     )
   }
@@ -113,7 +233,7 @@ export default function Product() {
                   key={i}
                   onClick={() => setSelectedImageIdx(i)}
                   className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${
-                    selectedImageIdx === i ? 'border-teal-600' : 'border-transparent'
+                    selectedImageIdx === i ? 'border-[#1B98E0]' : 'border-transparent'
                   }`}
                 >
                   <img src={img} alt="" className="w-full h-full object-cover" />
@@ -125,16 +245,16 @@ export default function Product() {
 
         {/* Product info */}
         <div>
-          <Link to={`/category/${product.category}`} className="text-teal-600 text-sm mb-2 inline-block">
+          <Link to={`/category/${product.category}`} className="text-[#004180] hover:text-[#1E9ED8] text-sm mb-2 inline-block">
             {locale === 'ar' ? product.categoryAr : product.category}
           </Link>
           <h1 className="text-2xl font-bold text-gray-800 mb-4">{displayName}</h1>
-          {product.name && (
+          {product.name && product.name !== product.nameAr && (
             <p className="text-gray-500 text-sm mb-2">{product.name}</p>
           )}
 
           <div className="flex items-center gap-4 mb-6">
-            <span className="text-2xl font-bold text-teal-600">{product.price} {t('sar')}</span>
+            <span className="text-2xl font-bold text-[#004180] hover:text-[#1E9ED8]">{product.price} {t('sar')}</span>
             {product.originalPrice && (
               <>
                 <span className="text-gray-400 line-through">{product.originalPrice} {t('sar')}</span>
@@ -147,10 +267,14 @@ export default function Product() {
             )}
           </div>
 
+          {product.barcode && (
+            <p className="text-sm text-gray-500 mb-2">{locale === 'ar' ? 'الباركود: ' : 'Barcode: '}{product.barcode}</p>
+          )}
+
           <div className="flex gap-3 mb-6">
             <button
               onClick={handleAddToCart}
-              className="flex-1 bg-teal-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-teal-700 transition-colors"
+              className="flex-1 bg-black text-white py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
               {t('addToCart')}
@@ -166,7 +290,7 @@ export default function Product() {
               {shareOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShareOpen(false)} />
-                  <div className="absolute left-0 top-full mt-1 py-2 w-48 bg-white rounded-xl shadow-lg border z-50">
+                  <div className={`absolute top-full mt-1 py-2 w-48 bg-white rounded-xl shadow-lg border z-50 ${locale === 'ar' ? 'right-0' : 'left-0'}`}>
                     <button
                       onClick={() => handleShare('whatsapp')}
                       className="w-full text-right px-4 py-2 hover:bg-gray-50 flex items-center gap-2"
@@ -233,6 +357,14 @@ export default function Product() {
               <p>{product.warnings ?? defaultWarnings}</p>
             </div>
           </div>
+
+          <Link
+            to="/product/all"
+            className="inline-flex items-center gap-2 mt-6 text-[#004180] hover:text-[#1E9ED8] text-sm font-medium"
+          >
+            <Package className="w-4 h-4" />
+            {t('viewAll')} {t('productsInCategory')}
+          </Link>
         </div>
       </div>
     </div>

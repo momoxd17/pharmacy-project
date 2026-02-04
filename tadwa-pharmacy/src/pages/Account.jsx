@@ -1,11 +1,28 @@
+import { useState, useEffect } from 'react'
 import { Navigate, Link } from 'react-router-dom'
-import { User, Mail, LogOut, Package, MapPin, Heart } from 'lucide-react'
+import { User, Mail, LogOut, Package, MapPin, Heart, CreditCard, Trash2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
+import { apiGet, apiDelete } from '../utils/api'
 
 export default function Account() {
   const { user, isLoading, logout } = useAuth()
   const { t } = useLanguage()
+  const [savedCards, setSavedCards] = useState([])
+
+  useEffect(() => {
+    if (user) {
+      apiGet('/users/me/cards').then(setSavedCards).catch(() => setSavedCards([]))
+    }
+  }, [user])
+
+  const removeCard = async (id) => {
+    if (!confirm(t('confirmRemoveCard'))) return
+    try {
+      await apiDelete(`/users/me/cards/${id}`)
+      setSavedCards((prev) => prev.filter((c) => c.id !== id))
+    } catch (e) {}
+  }
 
   if (isLoading) {
     return (
@@ -23,14 +40,14 @@ export default function Account() {
     <div className="max-w-2xl mx-auto px-4 py-12">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
         {/* Header */}
-        <div className="bg-gradient-to-l from-teal-700 to-teal-600 text-white px-8 py-8">
+        <div className="bg-gradient-to-l from-[#004180] to-[#1B98E0] text-white px-8 py-8">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
               <User className="w-8 h-8" />
             </div>
             <div>
               <h1 className="text-2xl font-bold">{user.name}</h1>
-              <p className="text-teal-100 flex items-center gap-2 mt-1">
+              <p className="text-white/90 flex items-center gap-2 mt-1">
                 <Mail className="w-4 h-4" />
                 {user.email}
               </p>
@@ -46,8 +63,8 @@ export default function Account() {
             to="/cart"
             className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors"
           >
-            <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
-              <Package className="w-5 h-5 text-teal-600" />
+            <div className="w-10 h-10 rounded-full bg-[#DFF2F3] flex items-center justify-center">
+              <Package className="w-5 h-5 text-[#1B98E0]" />
             </div>
             <div>
               <p className="font-medium text-gray-800">{t('cartAndOrders')}</p>
@@ -77,6 +94,35 @@ export default function Account() {
               <p className="text-sm text-gray-500">{t('comingSoon')}</p>
             </div>
           </div>
+
+          {savedCards.length > 0 && (
+            <div className="p-4 rounded-xl border border-gray-100">
+              <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-[#1B98E0]" />
+                {t('savedCards')}
+              </h3>
+              <ul className="space-y-2">
+                {savedCards.map((c) => (
+                  <li
+                    key={c.id}
+                    className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg"
+                  >
+                    <span className="font-mono text-sm">
+                      •••• •••• •••• {c.last4} — {c.expiry}
+                      {c.cardholder_name ? ` (${c.cardholder_name})` : ''}
+                    </span>
+                    <button
+                      onClick={() => removeCard(c.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      title={t('delete')}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="pt-6 border-t border-gray-100">
             <button
